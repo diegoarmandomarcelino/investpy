@@ -15,14 +15,17 @@ from .utils import constant as cst
 from .utils.extra import random_user_agent
 
 
+url = "https://www.investing.com/economic-calendar/Service/getCalendarFilteredData"
+
 def economic_calendar(
-    time_zone=None,
+    time_zone="GMT -3:00",
     time_filter="time_only",
-    countries=None,
+    countries=["brazil", "united states", "euro zone"],
     importances=None,
     categories=None,
     from_date=None,
     to_date=None,
+    as_dataframe=False
 ):
     """
     This function retrieves the economic calendar, which covers financial events and indicators from all over the world
@@ -69,36 +72,6 @@ def economic_calendar(
 
     """
 
-    if time_zone is not None and not isinstance(time_zone, str):
-        raise ValueError(
-            "ERR#0107: the introduced time_zone must be a string unless it is None."
-        )
-
-    if time_zone is None:
-        time_zone = "GMT"
-
-        diff = datetime.strptime(
-            strftime("%d/%m/%Y %H:%M", localtime()), "%d/%m/%Y %H:%M"
-        ) - datetime.strptime(strftime("%d/%m/%Y %H:%M", gmtime()), "%d/%m/%Y %H:%M")
-
-        hour_diff = int(diff.total_seconds() / 3600)
-        min_diff = int(diff.total_seconds() % 3600) * 60
-
-        if hour_diff != 0:
-            time_zone = (
-                "GMT "
-                + ("+" if hour_diff > 0 else "")
-                + str(hour_diff)
-                + ":"
-                + ("00" if min_diff < 30 else "30")
-            )
-    else:
-        if time_zone not in cst.TIMEZONES.keys():
-            raise ValueError(
-                "ERR#0108: the introduced time_zone does not exist, please consider"
-                " passing time_zone as None."
-            )
-
     if not isinstance(time_filter, str):
         raise ValueError(
             "ERR#0109: the introduced time_filter is not valid since it must be a"
@@ -138,8 +111,6 @@ def economic_calendar(
         raise ValueError(
             "ERR#0114: the introduced date value must be a string unless it is None."
         )
-
-    url = "https://www.investing.com/economic-calendar/Service/getCalendarFilteredData"
 
     headers = {
         "User-Agent": random_user_agent(),
@@ -318,4 +289,6 @@ def economic_calendar(
 
         data["limit_from"] += 1
 
-    return pd.DataFrame(results)
+    if as_dataframe:
+        return pd.DataFrame(results)
+    return results
