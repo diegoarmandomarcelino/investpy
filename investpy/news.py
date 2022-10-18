@@ -214,7 +214,7 @@ def economic_calendar(
             data["importance[]"] = def_importances
 
     id_, last_id = 0, 0
-    results = list()
+    results = dict()
 
     while True:
         req = requests.post(url, headers=headers, data=data)
@@ -268,24 +268,21 @@ def economic_calendar(
                         elif value.get("id") == "eventPrevious_" + id_:
                             previous = value.text_content().strip()
 
-                results.append(
-                    {
-                        "id": id_,
+                results[id_] = {
                         "date": curr_date,
                         "time": time,
                         "zone": zone,
                         "currency": None if currency == "" else currency,
                         "importance": None
-                        if importance_rating == None
-                        else cst.IMPORTANCE_RATINGS[int(importance_rating)],
+                            if importance_rating == None
+                            else cst.IMPORTANCE_RATINGS[int(importance_rating)],
                         "event": event,
                         "actual": None if actual == "" else actual,
                         "forecast": None if forecast == "" else forecast,
                         "previous": None if previous == "" else previous,
                     }
-                )
 
-        last_id = results[-1]["id"]
+        last_id = id_
 
         data["limit_from"] += 1
 
